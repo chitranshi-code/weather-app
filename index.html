@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Fetcher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=20260505-click-fix">
+</head>
+<body class="weather-clear is-day">
+  <main class="app-shell">
+    <form class="search-box" id="searchForm">
+      <input type="text" id="cityInput" placeholder="Search city" autocomplete="off">
+      <button type="submit">Get Weather</button>
+    </form>
+
+    <section class="weather-board" id="weatherCard">
+      <div class="board-header">
+        <p>Weather Forecast</p>
+        <span id="localTime">Today</span>
+      </div>
+
+      <div class="hero-weather">
+        <div>
+          <h1 id="condition">Search City</h1>
+          <p id="description">Type a city name to see live weather, air quality, hourly updates, and the next five days.</p>
+        </div>
+
+        <aside class="current-card">
+          <span id="cityName">Search a city</span>
+          <strong id="temp">--&deg;C</strong>
+          <div class="metric-row">
+            <span id="humidity">Humidity --%</span>
+            <span id="wind">Wind -- km/h</span>
+          </div>
+          <div class="air-card" id="airCard">
+            <small>Air Quality</small>
+            <b id="airIndex">US AQI --</b>
+            <span id="airLabel">Search to check air quality</span>
+            <div class="pollutant-grid">
+              <span id="pm25">PM2.5 --</span>
+              <span id="pm10">PM10 --</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <section class="forecast-panel">
+        <div class="section-heading">
+          <h2>Hourly</h2>
+          <span>Next 24 hours</span>
+        </div>
+        <div class="hourly-row" id="hourlyForecast"></div>
+      </section>
+
+      <section class="forecast-panel">
+        <div class="section-heading">
+          <h2>5-Day</h2>
+          <span>Daily outlook</span>
+        </div>
+        <div class="daily-grid" id="dailyForecast"></div>
+      </section>
+
+      <div class="weather-strip" id="weatherStrip">
+        <button type="button" data-city="Delhi">Delhi</button>
+        <button type="button" data-city="Mumbai">Mumbai</button>
+        <button type="button" data-city="London">London</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js?v=20260504-aqi-fix"></script>
+</body>
+</html>
