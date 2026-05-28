@@ -7,14 +7,42 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260505-click-fix">
+  <link rel="stylesheet" href="style.css?v=20260529-weather-fix">
 </head>
 <body class="weather-clear is-day">
   <main class="app-shell">
     <form class="search-box" id="searchForm">
-      <input type="text" id="cityInput" placeholder="Search city" autocomplete="off">
+      <input type="text" id="cityInput" placeholder="Search city" autocomplete="off" list="popularCityList">
+      <datalist id="popularCityList">
+        <option value="Delhi"></option>
+        <option value="Mumbai"></option>
+        <option value="London"></option>
+        <option value="Jaipur"></option>
+        <option value="Agra"></option>
+        <option value="Bengaluru"></option>
+        <option value="Chennai"></option>
+        <option value="Kolkata"></option>
+        <option value="Hyderabad"></option>
+        <option value="Pune"></option>
+        <option value="New York"></option>
+        <option value="Tokyo"></option>
+        <option value="Dubai"></option>
+        <option value="Paris"></option> 
+        <option value="Sydney"></option>
+      </datalist>
       <button type="submit">Get Weather</button>
     </form>
+
+    <div class="search-tools">
+      <button type="button" id="locationButton">Use my location</button>
+      <div class="popular-cities" aria-label="Popular cities">
+        <button type="button" data-city="Delhi">Delhi</button>
+        <button type="button" data-city="Mumbai">Mumbai</button>
+        <button type="button" data-city="London">London</button>
+        <button type="button" data-city="Jaipur">Jaipur</button>
+        <button type="button" data-city="Agra">Agra</button>
+      </div>
+    </div>
 
     <section class="weather-board" id="weatherCard">
       <div class="board-header">
@@ -71,6 +99,6 @@
     </section>
   </main>
 
-  <script src="script.js?v=20260504-aqi-fix"></script>
+  <script src="script.js?v=20260529-live-observation-fix"></script>
 </body>
 </html>

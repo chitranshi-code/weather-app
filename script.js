@@ -2,9 +2,11 @@ const apiKey = "072bced35f76279ec14583914c939f07";
 
 const form = document.getElementById("searchForm");
 const cityInput = document.getElementById("cityInput");
+const locationButton = document.getElementById("locationButton");
 const quickCities = document.querySelectorAll("[data-city]");
 const hourlyForecast = document.getElementById("hourlyForecast");
 const dailyForecast = document.getElementById("dailyForecast");
+const localLocationLabel = "Kuber Side, Agra";
 
 const weatherCopy = {
   Clear: "Clear skies over the city with bright, open air and easy visibility.",
@@ -39,7 +41,11 @@ function formatSpeed(metersPerSecond) {
   return `${Math.round(metersPerSecond * 3.6)} km/h`;
 }
 
-function weatherIcon(condition) {
+function weatherIcon(condition, isNight = false) {
+  if (condition === "Clear" && isNight) {
+    return "&#9790;";
+  }
+
   const icons = {
     Clear: "&#9728;",
     Clouds: "&#9729;",
@@ -119,7 +125,7 @@ async function getAirQuality(lat, lon) {
 }
 
 async function getLiveWeatherBundle(lat, lon) {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&hourly=temperature_2m,precipitation_probability,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=5`;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,is_day&hourly=temperature_2m,precipitation_probability,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=5`;
   const res = await fetch(url);
   const data = await res.json();
 
@@ -133,11 +139,17 @@ async function getLiveWeatherBundle(lat, lon) {
       humidity: data.current.relative_humidity_2m,
       windKmh: data.current.wind_speed_10m,
       time: data.current.time,
+      isNight: data.current.is_day === 0,
       ...openMeteoCondition(data.current.weather_code),
     },
     hourly: data.hourly,
     daily: data.daily,
   };
+}
+
+function isNightHour(isoTime) {
+  const hour = Number(isoTime.slice(11, 13));
+  return hour < 6 || hour >= 18;
 }
 
 function formatModelHour(isoTime) {
@@ -154,20 +166,22 @@ function formatModelDay(isoDate) {
   });
 }
 
-function renderHourlyForecast(bundle) {
+function renderHourlyForecast(bundle, currentWeather) {
   const currentIndex = Math.max(0, bundle.hourly.time.findIndex((time) => time >= bundle.current.time));
   const hours = bundle.hourly.time.slice(currentIndex, currentIndex + 8);
 
   hourlyForecast.innerHTML = hours.map((time, index) => {
     const sourceIndex = currentIndex + index;
-    const weather = openMeteoCondition(bundle.hourly.weather_code[sourceIndex]);
+    const weather = index === 0 ? currentWeather : openMeteoCondition(bundle.hourly.weather_code[sourceIndex]);
     const label = index === 0 ? "Now" : formatModelHour(time);
+    const night = isNightHour(time);
+    const temp = index === 0 ? currentWeather.temp : bundle.hourly.temperature_2m[sourceIndex];
 
     return `
       <article class="hour-card">
         <span>${label}</span>
-        <div class="weather-icon">${weatherIcon(weather.condition)}</div>
-        <b>${bundle.hourly.temperature_2m[sourceIndex].toFixed(1)}&deg;</b>
+        <div class="weather-icon">${weatherIcon(weather.condition, night)}</div>
+        <b>${temp.toFixed(1)}&deg;</b>
         <span>${bundle.hourly.precipitation_probability[sourceIndex]}% rain</span>
       </article>
     `;
@@ -192,34 +206,18 @@ function renderDailyForecast(bundle) {
 }
 
 function getDisplayWeather(current, liveBundle) {
-  if (liveBundle) {
-    return liveBundle.current;
-  }
-
   return {
     temp: current.main.temp,
     condition: current.weather[0].main,
     description: current.weather[0].description,
     humidity: current.main.humidity,
     windKmh: Math.round(current.wind.speed * 3.6),
+    isNight: liveBundle ? liveBundle.current.isNight : current.dt < current.sys.sunrise || current.dt > current.sys.sunset,
   };
 }
 
-async function getWeather(defaultCity) {
-  const city = (defaultCity || cityInput.value).trim();
-
-  if (!city) return;
-
-  const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`;
-
+async function renderWeatherData(data, displayName) {
   try {
-    const res = await fetch(url);
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.message || "City not found");
-    }
-
     const [airQuality, liveBundle] = await Promise.all([
       getAirQuality(data.coord.lat, data.coord.lon),
       getLiveWeatherBundle(data.coord.lat, data.coord.lon).catch(() => null),
@@ -227,9 +225,9 @@ async function getWeather(defaultCity) {
     const displayWeather = getDisplayWeather(data, liveBundle);
     const condition = displayWeather.condition;
     const description = displayWeather.description;
-    const isNight = data.dt < data.sys.sunrise || data.dt > data.sys.sunset;
+    const isNight = displayWeather.isNight;
 
-    document.getElementById("cityName").innerText = data.name;
+    document.getElementById("cityName").innerText = displayName || data.name;
     document.getElementById("temp").innerHTML = `${displayWeather.temp.toFixed(1)}&deg;C`;
     document.getElementById("condition").innerText = condition;
     document.getElementById("description").innerText = weatherCopy[condition] || description;
@@ -242,14 +240,14 @@ async function getWeather(defaultCity) {
     });
 
     setWeatherTheme(condition, isNight);
-    cityInput.value = data.name;
+    cityInput.value = displayName || data.name || cityInput.value;
 
     document.getElementById("airIndex").innerText = `US AQI ${airQuality.usAqi}`;
     document.getElementById("airLabel").innerText = airQualityLabel(airQuality.usAqi);
     document.getElementById("pm25").innerText = `PM2.5 ${airQuality.pm25.toFixed(1)}`;
     document.getElementById("pm10").innerText = `PM10 ${airQuality.pm10.toFixed(1)}`;
     if (liveBundle) {
-      renderHourlyForecast(liveBundle);
+      renderHourlyForecast(liveBundle, displayWeather);
       renderDailyForecast(liveBundle);
     }
   } catch (error) {
@@ -257,11 +255,67 @@ async function getWeather(defaultCity) {
   }
 }
 
+async function getWeather(defaultCity) {
+  const city = (defaultCity || cityInput.value).trim();
+
+  if (!city) return;
+
+  const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`;
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.message || "City not found");
+    return;
+  }
+
+  renderWeatherData(data);
+}
+
+async function getWeatherByLocation(lat, lon) {
+  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.message || "Location weather unavailable");
+    return;
+  }
+
+  renderWeatherData(data, localLocationLabel);
+}
+
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   getWeather();
 });
 
+locationButton.addEventListener("click", () => {
+  if (!navigator.geolocation) {
+    alert("Location is not supported in this browser.");
+    return;
+  }
+
+  locationButton.innerText = "Finding location...";
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      locationButton.innerText = "Use my location";
+      getWeatherByLocation(position.coords.latitude, position.coords.longitude);
+    },
+    () => {
+      locationButton.innerText = "Use my location";
+      alert("Location permission was not allowed.");
+    },
+    { enableHighAccuracy: true, timeout: 12000 }
+  );
+});
+
 quickCities.forEach((button) => {
-  button.addEventListener("click", () => getWeather(button.dataset.city));
+  button.addEventListener("click", () => {
+    if (button.closest(".weather-strip")) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    getWeather(button.dataset.city);
+  });
 });

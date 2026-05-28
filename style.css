@@ -80,7 +80,7 @@ input {
   gap: 14px;
   align-items: center;
   width: min(520px, 100%);
-  margin-bottom: 28px;
+  margin-bottom: 12px;
 }
 
 .search-box input,
@@ -111,6 +111,49 @@ input {
   cursor: pointer;
   font-weight: 700;
   box-shadow: 0 16px 32px rgba(18, 97, 183, 0.26);
+}
+
+.search-tools {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  width: min(900px, 100%);
+  margin-bottom: 28px;
+}
+
+.popular-cities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.search-tools > button,
+.popular-cities button {
+  min-height: 38px;
+  padding: 0 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  backdrop-filter: blur(14px);
+}
+
+.search-tools > button {
+  background: rgba(75, 158, 255, 0.34);
+}
+
+.search-tools > button:hover,
+.search-tools > button:focus-visible,
+.popular-cities button:hover,
+.popular-cities button:focus-visible {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .weather-board {
@@ -146,6 +189,12 @@ input {
   line-height: 0.94;
   letter-spacing: 0;
   text-transform: capitalize;
+  overflow-wrap: anywhere;
+}
+
+.weather-thunderstorm .hero-weather h1 {
+  font-size: clamp(42px, 5.6vw, 78px);
+  line-height: 1;
 }
 
 .hero-weather p {
@@ -360,6 +409,11 @@ input {
     width: 100%;
   }
 
+  .search-tools,
+  .popular-cities {
+    gap: 8px;
+  }
+
   .weather-board {
     min-height: auto;
     padding: 22px;
@@ -367,6 +421,10 @@ input {
 
   .hero-weather h1 {
     font-size: 48px;
+  }
+
+  .weather-thunderstorm .hero-weather h1 {
+    font-size: 42px;
   }
 
   .current-card {
@@ -421,8 +479,18 @@ input {
     grid-template-columns: 1fr;
   }
 
+  .search-tools {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .weather-strip button {
     min-height: 60px;
     font-size: 18px;
+  }
+
+  .search-tools > button,
+  .popular-cities button {
+    flex: 1 1 92px;
   }
 }
